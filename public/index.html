@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101412">
+  <title>Pulse | Meet someone new</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #101412;
+      --panel: #171d19;
+      --panel-raised: #1e2621;
+      --line: #303b34;
+      --muted: #9aa69d;
+      --paper: #edf2e9;
+      --mint: #b7f078;
+      --coral: #ff735d;
+      --mono: "DM Mono", monospace;
+      --sans: "Manrope", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background-color: var(--ink);
+      background-image: radial-gradient(#29332d 0.65px, transparent 0.65px);
+      background-size: 18px 18px;
+      color: var(--paper);
+      font-family: var(--sans);
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible { outline: 2px solid var(--mint); outline-offset: 3px; }
+
+    .shell { min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 34px;
+      border-bottom: 1px solid #29322c;
+      background: rgba(16, 20, 18, .88);
+    }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: var(--paper); text-decoration: none; }
+    .brand-mark {
+      width: 30px; height: 30px; display: grid; place-items: center;
+      border-radius: 9px; background: var(--mint); color: var(--ink);
+      font-size: 19px; font-weight: 800; line-height: 1;
+    }
+    .brand-name { font-size: 18px; font-weight: 800; letter-spacing: 0; }
+    .top-meta { display: flex; align-items: center; gap: 22px; color: var(--muted); font: 11px var(--mono); text-transform: uppercase; }
+    .online { display: inline-flex; align-items: center; gap: 8px; }
+    .online::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px #b7f07877; }
+
+    .workspace {
+      flex: 1;
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 25px 28px 28px;
+      display: grid;
+      grid-template-columns: 226px minmax(360px, 1fr) 350px;
+      gap: 18px;
+      min-height: 0;
+    }
+    .rail, .stage, .conversation { min-height: 0; }
+    .rail { display: flex; flex-direction: column; gap: 24px; padding: 8px 6px 8px 2px; }
+    .eyebrow { color: var(--muted); font: 10px var(--mono); text-transform: uppercase; letter-spacing: 0; }
+    .rail h1 { margin: 8px 0 0; max-width: 190px; font-size: 27px; line-height: 1.15; letter-spacing: 0; }
+    .rail h1 span { color: var(--mint); }
+    .mode-wrap { margin-top: 5px; }
+    .mode-label { display: block; margin-bottom: 10px; }
+    .mode-list { display: grid; gap: 7px; }
+    .mode-button {
+      width: 100%; min-height: 47px; padding: 0 12px;
+      display: flex; align-items: center; gap: 11px;
+      background: transparent; border: 1px solid transparent; border-radius: 7px;
+      color: #aab4ac; text-align: left; cursor: pointer; transition: .18s ease;
+    }
+    .mode-button:hover { background: #1a211d; color: var(--paper); }
+    .mode-button[aria-pressed="true"] { background: #202a22; border-color: #48583e; color: var(--mint); }
+    .mode-icon { width: 19px; display: inline-grid; place-items: center; font-size: 15px; }
+    .mode-name { flex: 1; font-size: 13px; font-weight: 700; }
+    .mode-state { color: #89968d; font: 9px var(--mono); text-transform: uppercase; }
+    .privacy-note { margin-top: auto; padding: 13px 0 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.65; }
+    .privacy-note strong { color: var(--paper); font-weight: 700; }
+    .privacy-icon { margin-right: 6px; color: var(--mint); }
+
+    .stage {
+      display: flex; flex-direction: column; min-width: 0;
+      border: 1px solid #303a33; border-radius: 9px; overflow: hidden;
+      background: var(--panel);
+      animation: arrive .45s ease both;
+    }
+    .stage-head { height: 54px; flex: 0 0 auto; padding: 0 17px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .stage-title { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 700; }
+    .stage-title .mode-icon { color: var(--mint); }
+    .session-clock { color: var(--muted); font: 10px var(--mono); }
+    .visual-area {
+      position: relative; flex: 1; min-height: 300px; overflow: hidden;
+      display: grid; place-items: center;
+      background-color: #121814;
+      background-image: linear-gradient(135deg, #19221c 0%, #151b17 46%, #20251c 100%);
+    }
+    .visual-area::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .33;
+      background: repeating-linear-gradient(0deg, transparent 0 5px, #a4ba9d09 6px 7px);
+    }
+    .visual-area[data-mode="chat"] { background-image: radial-gradient(ellipse at 50% 58%, #30412d 0%, #1c261f 30%, #141b16 75%); }
+    .visual-area video.remote-video { position: absolute; width: 100%; height: 100%; object-fit: cover; background: #121814; }
+    .visual-area video.remote-video:not([src]) { display: none; }
+    .empty-state { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 30px; }
+    .pulse-orbit { width: 82px; height: 82px; display: grid; place-items: center; border: 1px solid #b7f07870; border-radius: 50%; color: var(--mint); position: relative; }
+    .pulse-orbit::before, .pulse-orbit::after { content: ""; position: absolute; inset: -9px; border: 1px solid #b7f0782c; border-radius: 50%; animation: ripple 2.8s ease-out infinite; }
+    .pulse-orbit::after { animation-delay: 1.4s; }
+    .pulse-orbit svg { width: 30px; height: 30px; }
+    .empty-title { margin: 8px 0 0; font-size: 16px; font-weight: 700; }
+    .empty-copy { max-width: 240px; margin: 0; color: #a2aea4; font-size: 11px; line-height: 1.6; }
+    .remote-label { position: absolute; z-index: 2; left: 15px; bottom: 14px; padding: 6px 9px; border-radius: 4px; background: #0d120fbd; color: #eff3eb; font: 9px var(--mono); text-transform: uppercase; }
+    .local-wrap { display: none; position: absolute; z-index: 3; right: 14px; bottom: 14px; width: min(26%, 150px); aspect-ratio: 4/3; overflow: hidden; border: 1px solid #eaf0e288; border-radius: 5px; background: #101412; }
+    .local-wrap video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+    .local-wrap span { position: absolute; left: 6px; bottom: 5px; font: 8px var(--mono); text-transform: uppercase; text-shadow: 0 1px 3px #000; }
+    .visual-area.connected .empty-state { display: none; }
+    .visual-area.connected[data-mode="chat"] .empty-state { display: flex; }
+    .visual-area.connected[data-mode="chat"] .pulse-orbit { width: 104px; height: 104px; background: #b7f07812; }
+    .visual-area.connected[data-mode="chat"] .pulse-orbit svg { width: 39px; height: 39px; }
+    .visual-area.connected .remote-video { display: block; }
+    .visual-area.connected[data-mode="chat"] .remote-video { display: none; }
+    .visual-area.connected .remote-label { display: block; }
+    .visual-area.connected[data-mode="video"] .local-wrap { display: block; }
+    .visual-area.connected[data-mode="audio"] .empty-state { display: flex; }
+    .visual-area.connected[data-mode="audio"] .pulse-orbit { animation: breathe 2.6s ease-in-out infinite; }
+    .call-controls { min-height: 79px; flex: 0 0 auto; padding: 13px 16px; display: flex; align-items: center; justify-content: center; gap: 9px; border-top: 1px solid var(--line); }
+    .control-button { min-height: 39px; padding: 0 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #455047; border-radius: 5px; background: #222b25; color: var(--paper); font-size: 11px; font-weight: 700; cursor: pointer; transition: .16s ease; }
+    .control-button:hover:not(:disabled) { background: #2a352d; border-color: #768276; }
+    .control-button:disabled { cursor: not-allowed; opacity: .48; }
+    .control-button.primary { border-color: var(--mint); background: var(--mint); color: #172016; }
+    .control-button.primary:hover:not(:disabled) { background: #c9fa94; }
+    .control-button.danger { border-color: #8c4439; background: #48241f; color: #ff9b89; }
+    .control-button .glyph { font-size: 14px; line-height: 1; }
+
+    .conversation { display: flex; flex-direction: column; min-width: 0; border: 1px solid #303a33; border-radius: 9px; background: var(--panel); overflow: hidden; animation: arrive .55s .06s ease both; }
+    .conversation-head { height: 54px; flex: 0 0 auto; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .conversation-title { font-size: 12px; font-weight: 800; }
+    .conversation-state { color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .conversation-state::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 7px 1px 0; border-radius: 50%; background: #66736a; }
+    .conversation-state.active::before { background: var(--mint); }
+    .messages { flex: 1; min-height: 190px; padding: 17px 14px; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+    .welcome-message { margin: auto; max-width: 220px; color: var(--muted); text-align: center; font-size: 11px; line-height: 1.7; }
+    .welcome-message strong { display: block; margin-bottom: 6px; color: var(--paper); font-size: 12px; }
+    .message { max-width: 88%; align-self: flex-start; animation: arrive .18s ease both; }
+    .message.mine { align-self: flex-end; }
+    .message-meta { margin: 0 0 4px 3px; color: #859289; font: 9px var(--mono); }
+    .message.mine .message-meta { text-align: right; }
+    .message-body { padding: 9px 11px; border: 1px solid #364138; border-radius: 3px 9px 9px 9px; background: #222a24; color: #e7eee6; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .message.mine .message-body { border-color: #607a48; border-radius: 9px 3px 9px 9px; background: #34442b; }
+    .typing-indicator { min-height: 23px; padding: 0 15px; color: #a0aca2; font-size: 10px; font-style: italic; }
+    .composer { flex: 0 0 auto; padding: 11px; border-top: 1px solid var(--line); }
+    .composer-row { display: flex; align-items: center; gap: 7px; }
+    .composer input { width: 100%; min-width: 0; height: 40px; padding: 0 11px; border: 1px solid #39453c; border-radius: 5px; background: #111713; color: var(--paper); font-size: 11px; }
+    .composer input::placeholder { color: #7e8980; }
+    .send-button { width: 40px; height: 40px; flex: 0 0 auto; display: grid; place-items: center; border: 0; border-radius: 5px; background: var(--mint); color: var(--ink); cursor: pointer; }
+    .send-button:disabled { opacity: .4; cursor: not-allowed; }
+    .send-button svg { width: 17px; height: 17px; }
+    .composer-hint { margin: 8px 2px 0; display: flex; justify-content: space-between; color: #778279; font: 9px var(--mono); }
+    .toast { position: fixed; z-index: 10; left: 50%; bottom: 24px; max-width: calc(100vw - 32px); padding: 10px 14px; transform: translate(-50%, 15px); border: 1px solid #596750; border-radius: 5px; background: #202920; color: var(--paper); font-size: 11px; opacity: 0; pointer-events: none; transition: .2s; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @keyframes arrive { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes ripple { 0% { transform: scale(.86); opacity: .7; } 100% { transform: scale(1.2); opacity: 0; } }
+    @keyframes breathe { 0%,100% { box-shadow: 0 0 0 0 #b7f07800; } 50% { box-shadow: 0 0 0 12px #b7f07810; } }
+
+    @media (max-width: 1050px) {
+      .workspace { grid-template-columns: 190px minmax(300px, 1fr); }
+      .conversation { grid-column: 2; min-height: 320px; }
+      .rail { grid-row: 1 / span 2; }
+    }
+    @media (max-width: 700px) {
+      .topbar { height: 60px; padding: 0 16px; }
+      .top-meta { gap: 10px; font-size: 9px; }
+      .top-meta .secure-label { display: none; }
+      .workspace { padding: 14px 12px 18px; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .rail { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 3px 2px 0; }
+      .rail h1 { margin-top: 5px; max-width: none; font-size: 22px; }
+      .mode-wrap { margin-top: 0; }
+      .mode-label { margin-bottom: 7px; }
+      .mode-list { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .mode-button { min-height: 42px; justify-content: center; gap: 5px; padding: 0 7px; }
+      .mode-state { display: none; }
+      .mode-name { flex: 0 1 auto; font-size: 11px; }
+      .privacy-note { display: none; }
+      .stage { min-height: 390px; }
+      .visual-area { min-height: 245px; }
+      .conversation { grid-column: 1; min-height: 310px; }
+      .messages { min-height: 155px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Pulse home">
+        <span class="brand-mark" aria-hidden="true">P</span>
+        <span class="brand-name">pulse</span>
+      </a>
+      <div class="top-meta">
+        <span class="online">Random chat</span>
+        <span class="secure-label">Private by default</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="rail" aria-label="Chat settings">
+        <div>
+          <div class="eyebrow">A small hello can go anywhere</div>
+          <h1>Meet someone<br><span>unexpected.</span></h1>
+        </div>
+
+        <div class="mode-wrap">
+          <span class="eyebrow mode-label">Choose your mode</span>
+          <div class="mode-list" role="group" aria-label="Chat mode">
+            <button class="mode-button" data-mode="chat" aria-pressed="true" type="button">
+              <span class="mode-icon" aria-hidden="true">◌</span><span class="mode-name">Text</span><span class="mode-state">No media</span>
+            </button>
+            <button class="mode-button" data-mode="audio" aria-pressed="false" type="button">
+              <span class="mode-icon" aria-hidden="true">⌁</span><span class="mode-name">Audio</span><span class="mode-state">Mic</span>
+            </button>
+            <button class="mode-button" data-mode="video" aria-pressed="false" type="button">
+              <span class="mode-icon" aria-hidden="true">▣</span><span class="mode-name">Video</span><span class="mode-state">Cam + mic</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="privacy-note"><span class="privacy-icon" aria-hidden="true">◆</span><strong>Your call, your choice.</strong><br>Text mode never requests camera or microphone access. You can leave a match at any time.</div>
+      </aside>
+
+      <section class="stage" aria-label="Stranger connection">
+        <div class="stage-head">
+          <div class="stage-title"><span class="mode-icon" id="stageModeIcon" aria-hidden="true">◌</span><span id="stageTitle">Text chat</span></div>
+          <span class="session-clock" id="sessionClock">READY</span>
+        </div>
+        <div class="visual-area" id="visualArea" data-mode="chat">
+          <video class="remote-video" id="remoteVideo" autoplay playsinline></video>
+          <div class="empty-state" id="emptyState">
+            <div class="pulse-orbit" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="none"><path d="M3 17h6l3-9 6 17 4-11 2 3h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h2 class="empty-title" id="emptyTitle">Your next conversation is out there.</h2>
+            <p class="empty-copy" id="emptyCopy">Start a text chat and see who you meet. No camera or mic needed.</p>
+          </div>
+          <span class="remote-label" id="remoteLabel" hidden>Stranger</span>
+          <div class="local-wrap" id="localWrap"><video id="localVideo" autoplay muted playsinline></video><span>You</span></div>
+        </div>
+        <div class="call-controls">
+          <button class="control-button primary" id="startButton" type="button"><span class="glyph" aria-hidden="true">↗</span><span>Start meeting</span></button>
+          <button class="control-button" id="nextButton" type="button" hidden><span class="glyph" aria-hidden="true">↻</span><span>Next</span></button>
+          <button class="control-button danger" id="leaveButton" type="button" hidden><span class="glyph" aria-hidden="true">■</span><span>Leave</span></button>
+        </div>
+      </section>
+
+      <section class="conversation" aria-label="Conversation">
+        <div class="conversation-head">
+          <span class="conversation-title">Messages</span>
+          <span class="conversation-state" id="conversationState">Not connected</span>
+        </div>
+        <div class="messages" id="messages" aria-live="polite">
+          <div class="welcome-message" id="welcomeMessage"><strong>Say hello when you connect.</strong>Your messages are only shared with your current match.</div>
+        </div>
+        <div class="typing-indicator" id="typingIndicator" aria-live="polite"></div>
+        <form class="composer" id="messageForm">
+          <label class="sr-only" for="messageInput">Write a message</label>
+          <div class="composer-row">
+            <input id="messageInput" type="text" placeholder="Find someone to chat with…" maxlength="5000" autocomplete="off" disabled>
+            <button class="send-button" id="sendButton" type="submit" aria-label="Send message" disabled>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 4 16 8-16 8 3-8-3-8Zm3 8h13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="composer-hint"><span>Enter to send</span><span id="characterCount">0 / 5000</span></div>
+        </form>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (() => {
+      const modeButtons = [...document.querySelectorAll('.mode-button')];
+      const stageModeIcon = document.getElementById('stageModeIcon');
+      const stageTitle = document.getElementById('stageTitle');
+      const visualArea = document.getElementById('visualArea');
+      const emptyTitle = document.getElementById('emptyTitle');
+      const emptyCopy = document.getElementById('emptyCopy');
+      const remoteLabel = document.getElementById('remoteLabel');
+      const sessionClock = document.getElementById('sessionClock');
+      const conversationState = document.getElementById('conversationState');
+      const messages = document.getElementById('messages');
+      const welcomeMessage = document.getElementById('welcomeMessage');
+      const typingIndicator = document.getElementById('typingIndicator');
+      const messageInput = document.getElementById('messageInput');
+      const sendButton = document.getElementById('sendButton');
+      const messageForm = document.getElementById('messageForm');
+      const characterCount = document.getElementById('characterCount');
+      const startButton = document.getElementById('startButton');
+      const nextButton = document.getElementById('nextButton');
+      const leaveButton = document.getElementById('leaveButton');
+      const toast = document.getElementById('toast');
+      const localVideo = document.getElementById('localVideo');
+      const remoteVideo = document.getElementById('remoteVideo');
+
+      const modes = {
+        chat: { title: 'Text chat', icon: '◌', idleTitle: 'Your next conversation is out there.', idleCopy: 'Start a text chat and see who you meet. No camera or mic needed.' },
+        audio: { title: 'Audio chat', icon: '⌁', idleTitle: 'A voice can change your day.', idleCopy: 'Start an audio chat to meet someone new. Your microphone is only used after you choose Audio.' },
+        video: { title: 'Video chat', icon: '▣', idleTitle: 'A face-to-face hello.', idleCopy: 'Start a video chat to meet someone new. Camera and microphone access are only requested when you choose Video.' }
+      };
+      let mode = 'chat';
+      let socket;
+      let peer;
+      let localStream;
+      let remoteStream;
+      let callReady;
+      let matched = false;
+      let connected = false;
+      let startedAt = 0;
+      let clockTimer;
+      let toastTimer;
+      let signalingQueue = [];
+      let isInitiator = false;
+      let iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+
+      function showToast(text) {
+        toast.textContent = text;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+      }
+
+      function setMode(nextMode) {
+        if (matched || nextMode === mode || !modes[nextMode]) return;
+        mode = nextMode;
+        modeButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+        stageModeIcon.textContent = modes[mode].icon;
+        stageTitle.textContent = modes[mode].title;
+        visualArea.dataset.mode = mode;
+        emptyTitle.textContent = modes[mode].idleTitle;
+        emptyCopy.textContent = modes[mode].idleCopy;
+        clearMessages();
+      }
+
+      modeButtons.forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode)));
+
+      function setButtons(state) {
+        const isIdle = state === 'idle';
+        const isWaiting = state === 'waiting';
+        const isMatched = state === 'matched';
+        startButton.hidden = !isIdle;
+        nextButton.hidden = !isMatched;
+        leaveButton.hidden = !(isWaiting || isMatched);
+        startButton.disabled = !socket || !socket.connected;
+        nextButton.disabled = !socket || !socket.connected;
+      }
+
+      function setStatus(text, active = false) {
+        conversationState.textContent = text;
+        conversationState.classList.toggle('active', active);
+      }
+
+      function clearMessages() {
+        messages.replaceChildren(welcomeMessage);
+        welcomeMessage.hidden = false;
+        typingIndicator.textContent = '';
+      }
+
+      function addMessage(text, mine) {
+        welcomeMessage.hidden = true;
+        const wrapper = document.createElement('div');
+        wrapper.className = `message${mine ? ' mine' : ''}`;
+        const meta = document.createElement('div');
+        meta.className = 'message-meta';
+        meta.textContent = mine ? 'You' : 'Stranger';
+        const body = document.createElement('div');
+        body.className = 'message-body';
+        body.textContent = text;
+        wrapper.append(meta, body);
+        messages.append(wrapper);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function resetClock() {
+        clearInterval(clockTimer);
+        sessionClock.textContent = 'READY';
+      }
+
+      function startClock() {
+        startedAt = Date.now();
+        clearInterval(clockTimer);
+        const update = () => {
+          const seconds = Math.floor((Date.now() - startedAt) / 1000);
+          sessionClock.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+        };
+        update();
+        clockTimer = setInterval(update, 1000);
+      }
+
+      function stopMedia() {
+        if (peer) {
+          peer.ontrack = null;
+          peer.onicecandidate = null;
+          peer.onconnectionstatechange = null;
+          peer.close();
+          peer = null;
+        }
+        if (localStream) localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+        remoteStream = null;
+        localVideo.srcObject = null;
+        remoteVideo.srcObject = null;
+        visualArea.classList.remove('connected');
+        callReady = null;
+        signalingQueue = [];
+        matched = false;
+        connected = false;
+        resetClock();
+      }
+
+      function finishMatch(message) {
+        stopMedia();
+        setButtons('idle');
+        setStatus('Not connected');
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        messageInput.placeholder = 'Find someone to chat with…';
+        emptyTitle.textContent = modes[mode].idleTitle;
+        emptyCopy.textContent = modes[mode].idleCopy;
+        clearMessages();
+        if (message) showToast(message);
+      }
+
+      async function prepareCall() {
+        if (callReady) return callReady;
+        callReady = (async () => {
+          const constraints = mode === 'video' ? { audio: true, video: { facingMode: 'user' } } : { audio: true, video: false };
+          localStream = await navigator.mediaDevices.getUserMedia(constraints);
+          if (mode === 'video') localVideo.srcObject = localStream;
+          remoteStream = new MediaStream();
+          remoteVideo.srcObject = remoteStream;
+          peer = new RTCPeerConnection({ iceServers });
+          localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+          peer.ontrack = event => {
+            event.streams[0]?.getTracks().forEach(track => remoteStream.addTrack(track));
+            visualArea.classList.add('connected');
+          };
+          peer.onicecandidate = event => {
+            if (event.candidate) socket.emit('signal', { candidate: event.candidate });
+          };
+          peer.onconnectionstatechange = () => {
+            if (peer && peer.connectionState === 'failed') showToast('Connection failed. Try Next or check your network.');
+          };
+          if (isInitiator) {
+            const offer = await peer.createOffer();
+            await peer.setLocalDescription(offer);
+            socket.emit('signal', { description: peer.localDescription });
+          }
+          const pending = signalingQueue;
+          signalingQueue = [];
+          for (const payload of pending) await handleSignal(payload);
+        })();
+        try {
+          await callReady;
+        } catch (error) {
+          callReady = null;
+          throw error;
+        }
+      }
+
+      async function handleSignal(payload) {
+        if (!peer) {
+          signalingQueue.push(payload);
+          return;
+        }
+        if (payload?.description) {
+          await peer.setRemoteDescription(payload.description);
+          if (payload.description.type === 'offer') {
+            const answer = await peer.createAnswer();
+            await peer.setLocalDescription(answer);
+            socket.emit('signal', { description: peer.localDescription });
+          }
+        } else if (payload?.candidate) {
+          try { await peer.addIceCandidate(payload.candidate); } catch (error) { console.warn('Could not add ICE candidate', error); }
+        }
+      }
+
+      function startMatching(next = false) {
+        if (!socket || !socket.connected) {
+          showToast('Connecting to Pulse. Try again in a moment.');
+          return;
+        }
+        stopMedia();
+        matched = false;
+        setButtons('waiting');
+        setStatus('Finding a match');
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        messageInput.placeholder = 'Find someone to chat with…';
+        clearMessages();
+        emptyTitle.textContent = 'Looking for someone new…';
+        emptyCopy.textContent = `Finding a ${mode === 'chat' ? 'text' : mode} chat. Hang tight.`;
+        if (next) socket.emit('next', { mode });
+        else socket.emit('find-stranger', { mode });
+      }
+
+      startButton.addEventListener('click', () => startMatching());
+      nextButton.addEventListener('click', () => startMatching(true));
+      leaveButton.addEventListener('click', () => {
+        if (socket) socket.emit('leave');
+        finishMatch('You left the conversation.');
+      });
+
+      messageInput.addEventListener('input', () => {
+        characterCount.textContent = `${messageInput.value.length} / 5000`;
+        if (matched && socket) socket.emit('typing', messageInput.value.length > 0);
+      });
+      messageForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const text = messageInput.value.trim();
+        if (!text || !matched || mode !== 'chat') return;
+        socket.emit('chat-message', text);
+        addMessage(text, true);
+        messageInput.value = '';
+        characterCount.textContent = '0 / 5000';
+        socket.emit('typing', false);
+        messageInput.focus();
+      });
+
+      async function loadConfig() {
+        try {
+          const response = await fetch('/config.json', { cache: 'no-store' });
+          if (response.ok) {
+            const config = await response.json();
+            if (Array.isArray(config.iceServers) && config.iceServers.length) iceServers = config.iceServers;
+          }
+        } catch (error) {
+          console.warn('Using default connection configuration', error);
+        }
+      }
+
+      async function connect() {
+        if (typeof io !== 'function') {
+          showToast('The chat server is unavailable. Start the app with npm start.');
+          return;
+        }
+        await loadConfig();
+        socket = io();
+        socket.on('connect', () => setButtons('idle'));
+        socket.on('disconnect', () => {
+          finishMatch('Connection to Pulse was lost.');
+          setButtons('idle');
+          setStatus('Reconnecting…');
+        });
+        socket.on('waiting', () => {
+          setButtons('waiting');
+          setStatus('Waiting for someone', false);
+          emptyTitle.textContent = 'Looking for someone new…';
+          emptyCopy.textContent = 'You’ll be connected as soon as someone joins.';
+        });
+        socket.on('matched', async details => {
+          matched = true;
+          connected = true;
+          isInitiator = !!details?.initiator;
+          mode = details?.mode || mode;
+          modeButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+          stageModeIcon.textContent = modes[mode].icon;
+          stageTitle.textContent = modes[mode].title;
+          visualArea.dataset.mode = mode;
+          remoteLabel.hidden = false;
+          remoteLabel.textContent = mode === 'chat' ? 'Connected · text' : 'Connecting…';
+          setButtons('matched');
+          setStatus('Connected', true);
+          messageInput.disabled = mode !== 'chat';
+          sendButton.disabled = mode !== 'chat';
+          messageInput.placeholder = mode === 'chat' ? 'Write a message…' : 'Text is off in this mode';
+          emptyTitle.textContent = mode === 'chat' ? 'You found someone.' : (mode === 'audio' ? 'Connecting your audio…' : 'Connecting your video…');
+          emptyCopy.textContent = mode === 'chat' ? 'Say hello and see where the conversation goes.' : 'Setting up a private peer-to-peer call.';
+          startClock();
+          if (mode === 'chat') {
+            visualArea.classList.add('connected');
+            remoteLabel.hidden = true;
+          } else {
+            try {
+              await prepareCall();
+              if (!matched) return;
+              remoteLabel.textContent = 'Stranger';
+              if (mode === 'audio') visualArea.classList.add('connected');
+            } catch (error) {
+              console.error('Could not start media call', error);
+              socket.emit('leave');
+              finishMatch(error.name === 'NotAllowedError' ? 'Allow microphone or camera access to use this mode.' : 'Could not access your microphone or camera. Check your device settings.');
+            }
+          }
+          if (mode === 'chat') messageInput.focus();
+        });
+        socket.on('signal', async payload => {
+          try {
+            if (!peer) {
+              signalingQueue.push(payload);
+              if (matched && mode !== 'chat') await prepareCall();
+            } else await handleSignal(payload);
+          } catch (error) {
+            console.error('Call signaling failed', error);
+            showToast('Could not establish the call. Try Next.');
+          }
+        });
+        socket.on('chat-message', text => {
+          if (matched && mode === 'chat') addMessage(String(text), false);
+        });
+        socket.on('typing', value => {
+          typingIndicator.textContent = value && mode === 'chat' ? 'Stranger is typing…' : '';
+        });
+        socket.on('stranger-left', () => finishMatch('Stranger left. Find someone new when you’re ready.'));
+      }
+
+      setButtons('idle');
+      connect();
+    })();
+  </script>
+</body>
+</html>
